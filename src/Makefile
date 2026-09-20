@@ -3,6 +3,7 @@ CFLAGS=-Wall -Wextra -pedantic -std=gnu99 -g
 LDFLAGS=-lm
 PROGRAMS=random_ids id_query_naive coord_query_naive
 TESTS=..
+BIN=bin
 
 .PHONY: all test clean ../src.zip
 
@@ -18,16 +19,16 @@ coord_query_%: coord_query_%.o record.o coord_query.o
 	gcc -o $@ $^ $(LDFLAGS)
 
 id_query.o: id_query.c
-	$(CC) -c $< $(CFLAGS)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $<
 
 coord_query.o: coord_query.c
-	$(CC) -c $< $(CFLAGS)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $<
 
 record.o: record.c
-	$(CC) -c $< $(CFLAGS)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $<
 
 sort.o: sort.c
-	$(CC) -c $< $(CFLAGS)
+	$(CC) $(CFLAGS) -o $(BIN)/$@ $<
 
 test: $(TESTS)
 	@set e; for test in $(TESTS); do echo ./$$test; ./$$test; done
