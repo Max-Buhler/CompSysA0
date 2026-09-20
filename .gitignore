@@ -1,2 +1,2 @@
 planet-latest_geonames.tsv
-src/bin/
+src/*.o
