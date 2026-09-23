@@ -56,7 +56,7 @@ const struct record *lookup_indexed(struct index_data *data, int64_t needle) {
   int right = data->n - 1;
   int middle = right / 2;
   // binsort algorithm
-  while (left >= right) {
+  while (left <= right) {
     if ((*data).irs[middle].osm_id == needle) {
       return (*data).irs[middle].record;
     }
