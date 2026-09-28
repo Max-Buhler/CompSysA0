@@ -61,12 +61,12 @@ const struct record *lookup_indexed(struct index_data *data, int64_t needle) {
       return (*data).irs[middle].record;
     }
     if ((*data).irs[middle].osm_id < needle) {
-      left = middle;
-      middle = (left + right) / 2;
+      left = middle + 1;
+      middle = left + (right - left) / 2;
     }
     if ((*data).irs[middle].osm_id > needle) {
-      right = middle;
-      middle = (left + right) / 2;
+      right = middle - 1;
+      middle = left + (right - left) / 2;
     }
   }
   return NULL;
