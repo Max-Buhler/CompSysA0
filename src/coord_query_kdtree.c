@@ -95,7 +95,7 @@ struct node *rec_lookup(struct node *no, double lon, double lat,
                         struct node *closest) {
   struct node *new_closest = closest;
   if (no == NULL) {
-    return NULL;
+    return closest;
   }
   if (closest == NULL) {
     new_closest = no;
@@ -113,29 +113,17 @@ struct node *rec_lookup(struct node *no, double lon, double lat,
 
   if (distself < distclosest) {
     new_closest = no;
+    distclosest = sqrt(pow((new_closest->record->lon - lon), 2.0) +
+                       pow((new_closest->record->lat - lat), 2.0));
   }
 
-  if (diff >= 0 && distclosest > fabs(diff)) {
+  if (diff >= 0 || distclosest > fabs(diff)) {
     struct node *left = rec_lookup(no->left, lon, lat, new_closest);
-    if (left == NULL) {
-      return new_closest;
-    }
-    double distleft = sqrt(pow((left->record->lon - lon), 2.0) +
-                           pow((left->record->lat - lat), 2.0));
-    if (distleft < distclosest) {
-      new_closest = left;
-    }
-  } else if (diff <= 0 && distclosest > fabs(diff)) {
-    rec_lookup(no->right, lon, lat, new_closest);
+    new_closest = left;
+  }
+  if (diff <= 0 || distclosest > fabs(diff)) {
     struct node *right = rec_lookup(no->right, lon, lat, new_closest);
-    if (right == NULL) {
-      return new_closest;
-    }
-    double distright = sqrt(pow((right->record->lon - lon), 2.0) +
-                            pow((right->record->lat - lat), 2.0));
-    if (distright < distclosest) {
-      new_closest = right;
-    }
+    new_closest = right;
   }
   return new_closest;
 }
