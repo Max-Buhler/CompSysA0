@@ -24,6 +24,12 @@ static void check(int condition, const char *message) {
   }
 }
 
+static void print_pass_for_command(const char *command) {
+  const char *name = command + 2;
+  const char *name_end = strchr(name, ' ');
+  printf("  [PASS] %.*s\n", (int)(name_end - name), name);
+}
+
 static char *read_file(FILE *file) {
   size_t length = 0;
   size_t capacity = 4096;
@@ -114,6 +120,7 @@ static void test_id_queries(void) {
     check(strstr(output, expected) != NULL, "ID query missed the last record");
     check(strstr(output, "-1: not found") != NULL, "ID query found a missing ID");
     free(output);
+    print_pass_for_command(programs[i]);
   }
   free_records(records, count);
 }
@@ -161,6 +168,7 @@ static void test_coordinate_queries(void) {
       cursor += strlen(match);
     }
     free(output);
+    print_pass_for_command(programs[i]);
   }
   free_records(records, count);
 }
@@ -200,6 +208,14 @@ static double milliseconds(void) {
   return time.tv_sec * 1000.0 + time.tv_nsec / 1000000.0;
 }
 
+static void print_benchmark_row(const char *command, int count,
+                                double elapsed) {
+  const char *name = command + 2;
+  const char *name_end = strchr(name, ' ');
+  printf("  %-24.*s %7d %7d %11.2f ms\n",
+         (int)(name_end - name), name, count, count, elapsed);
+}
+
 static void benchmark(void) {
   const char *id_programs[] = {"./id_query_naive " FULL_DATA,
                                "./id_query_indexed " FULL_DATA,
@@ -223,21 +239,18 @@ static void benchmark(void) {
     strncat(coord_queries, query, capacity - strlen(coord_queries) - 1);
   }
 
-  printf("program,records,queries,elapsed_ms\n");
+  printf("\nBenchmark results\n");
+  printf("  %-24s %7s %7s %14s\n", "Program", "Records", "Queries", "Elapsed");
   for (size_t i = 0; i < sizeof(id_programs) / sizeof(id_programs[0]); i++) {
     double start = milliseconds();
     char *output = run_program(id_programs[i], id_queries);
-      const char *name_end = strchr(id_programs[i] + 2, ' ');
-      printf("%.*s,%d,%d,%.2f\n", (int)(name_end - (id_programs[i] + 2)),
-        id_programs[i] + 2, count, count, milliseconds() - start);
+    print_benchmark_row(id_programs[i], count, milliseconds() - start);
     free(output);
   }
   for (size_t i = 0; i < sizeof(coord_programs) / sizeof(coord_programs[0]); i++) {
     double start = milliseconds();
     char *output = run_program(coord_programs[i], coord_queries);
-      const char *name_end = strchr(coord_programs[i] + 2, ' ');
-      printf("%.*s,%d,%d,%.2f\n", (int)(name_end - (coord_programs[i] + 2)),
-        coord_programs[i] + 2, count, count, milliseconds() - start);
+    print_benchmark_row(coord_programs[i], count, milliseconds() - start);
     free(output);
   }
   free(id_queries);
@@ -251,10 +264,14 @@ int main(int argc, char **argv) {
     return 0;
   }
   check(argc == 1, "usage: test_programs [--benchmark]");
+  printf("CompSys test suite\n");
   test_record_reader();
+  printf("  [PASS] record reader\n");
   test_id_queries();
   test_coordinate_queries();
   test_random_ids();
-  printf("All tests passed\n");
+  printf("  [PASS] random ID generator\n");
+  printf("\nTest summary: 7 passed, 0 failed\n");
+  benchmark();
   return 0;
 }
