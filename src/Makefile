@@ -1,10 +1,10 @@
 CC=gcc
 CFLAGS=-Wall -Wextra -pedantic -std=gnu99 -g
 LDFLAGS=-lm
-PROGRAMS=random_ids id_query_naive coord_query_naive coord_query_kdtree id_query_binsort
-TESTS=..
+PROGRAMS=random_ids id_query_naive id_query_indexed id_query_binsort coord_query_naive coord_query_kdtree
+TEST_PROGRAM=test_programs
 
-.PHONY: all test clean ../src.zip
+.PHONY: all test benchmark clean ../src.zip
 
 all: $(PROGRAMS)
 
@@ -16,6 +16,9 @@ id_query_%: id_query_%.o record.o id_query.o
 
 coord_query_%: coord_query_%.o record.o coord_query.o
 	gcc -o $@ $^ $(LDFLAGS)
+
+$(TEST_PROGRAM): ../tests/test_programs.c record.o
+	$(CC) -o $@ $^ $(CFLAGS) $(LDFLAGS)
 
 id_query.o: id_query.c
 	$(CC) -c $< $(CFLAGS)
@@ -29,11 +32,14 @@ record.o: record.c
 sort.o: sort.c
 	$(CC) -c $< $(CFLAGS)
 
-test: $(TESTS)
-	@set e; for test in $(TESTS); do echo ./$$test; ./$$test; done
+test: $(PROGRAMS) $(TEST_PROGRAM)
+	./$(TEST_PROGRAM)
+
+benchmark: $(PROGRAMS) $(TEST_PROGRAM)
+	./$(TEST_PROGRAM) --benchmark
 
 clean:
-	rm -rf core *.o $(PROGRAMS)
+	rm -rf core *.o $(PROGRAMS) $(TEST_PROGRAM)
 
 planet-latest-geonames.tsv:
 	wget https://github.com/OSMNames/OSMNames/releases/download/v2.0.4/planet-latest_geonames.tsv.gz
